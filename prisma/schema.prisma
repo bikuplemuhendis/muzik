@@ -1,0 +1,158 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id
+  email        String     @unique
+  passwordHash String
+  name         String
+  role         String
+  venueId      String?
+  venue        Venue?     @relation(fields: [venueId], references: [id])
+  createdAt    DateTime   @default(now())
+  tracks       Track[]
+  playlists    Playlist[]
+  aiLogs       AiAssistLog[]
+}
+
+model Plan {
+  id                   String  @id
+  slug                 String  @unique
+  name                 String
+  tagline              String
+  monthlyPriceTry      Int
+  annualPriceTry       Int
+  maxLocations         Int
+  maxConcurrentPlayers Int
+  catalogAccess        String
+  featuresJson         String
+  highlighted          Boolean @default(false)
+  sortOrder            Int     @default(0)
+  venues               Venue[]
+}
+
+model Venue {
+  id            String   @id
+  name          String
+  venueType     String
+  city          String
+  address       String   @default("")
+  planId        String
+  plan          Plan     @relation(fields: [planId], references: [id])
+  locationCount Int      @default(1)
+  status        String   @default("active")
+  scheduleJson  String   @default("{}")
+  createdAt     DateTime @default(now())
+  users         User[]
+}
+
+model License {
+  id                  String  @id
+  slug                String  @unique
+  name                String
+  summary             String
+  commercialUse       Boolean
+  publicPerformance   Boolean
+  attributionRequired Boolean
+  territory           String
+  body                String
+  tracks              Track[]
+}
+
+model Track {
+  id             String          @id
+  title          String
+  artistName     String
+  collectionName String
+  description    String
+  durationSec    Int
+  bpm            Int?
+  energy         Int             @default(2)
+  audioUrl       String
+  coverUrl       String
+  videoUrl       String?
+  isPublished    Boolean         @default(false)
+  licenseId      String
+  license        License         @relation(fields: [licenseId], references: [id])
+  createdById    String
+  createdBy      User            @relation(fields: [createdById], references: [id])
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  terms          TrackTerm[]
+  media          TrackMedia[]
+  playlistTracks PlaylistTrack[]
+  aiLogs         AiAssistLog[]
+}
+
+model TrackMedia {
+  id        String @id @default(cuid())
+  trackId   String
+  track     Track  @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  kind      String
+  url       String
+  caption   String @default("")
+  sortOrder Int    @default(0)
+}
+
+model TaxonomyTerm {
+  id        String      @id
+  kind      String
+  slug      String
+  name      String
+  nameTr    String
+  color     String      @default("#c8a45a")
+  sortOrder Int         @default(0)
+  tracks    TrackTerm[]
+
+  @@unique([kind, slug])
+}
+
+model TrackTerm {
+  trackId String
+  termId  String
+  track   Track         @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  term    TaxonomyTerm  @relation(fields: [termId], references: [id], onDelete: Cascade)
+
+  @@id([trackId, termId])
+}
+
+model Playlist {
+  id          String          @id
+  title       String
+  description String
+  coverUrl    String
+  kind        String          @default("CURATED")
+  venueFit    String          @default("")
+  isPublic    Boolean         @default(true)
+  createdById String
+  createdBy   User            @relation(fields: [createdById], references: [id])
+  tracks      PlaylistTrack[]
+}
+
+model PlaylistTrack {
+  playlistId String
+  trackId    String
+  position   Int
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  track      Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@id([playlistId, trackId])
+}
+
+model AiAssistLog {
+  id        String   @id @default(cuid())
+  trackId   String?
+  track     Track?   @relation(fields: [trackId], references: [id])
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  mode      String
+  input     String
+  output    String
+  createdAt DateTime @default(now())
+}

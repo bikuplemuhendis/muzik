@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #000000;
+  --surface: #121212;
+  --elevated: #181818;
+  --highlight: #282828;
+  --text: #ffffff;
+  --muted: #b3b3b3;
+  --subtle: #6a6a6a;
+  --gold: #c8a45a;
+  --gold-2: #e0c070;
+  --play: #1ed760;
+  --danger: #f87171;
+  --sidebar: #000000;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-elevated: var(--elevated);
+  --color-highlight: var(--highlight);
+  --color-gold: var(--gold);
+  --color-play: var(--play);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #3a3a3a transparent;
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.aura-gradient {
+  background: linear-gradient(180deg, rgba(200, 164, 90, 0.35) 0%, rgba(18, 18, 18, 1) 55%);
+}
+
+.card-hover {
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  background: #282828;
+}
+
+.play-fab {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.18s ease;
+}
+
+.card-hover:hover .play-fab,
+.row-hover:hover .play-fab {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.row-hover:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+input,
+textarea,
+select {
+  background: #1a1a1a;
+  color: white;
+  border: 1px solid #333;
+  border-radius: 6px;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid rgba(200, 164, 90, 0.45);
+  border-color: var(--gold);
+}
+
+::selection {
+  background: rgba(200, 164, 90, 0.35);
+}
