@@ -28,6 +28,9 @@ export default async function VenuePage() {
                 <li key={f}>{f}</li>
               ))}
             </ul>
+            <Link href="/certificate" className="mt-4 inline-block rounded-full bg-white px-5 py-2 font-semibold text-black">
+              Ticari icra belgesini görüntüle
+            </Link>
           </div>
           <ScheduleForm
             venueId={venue.id}
@@ -35,9 +38,6 @@ export default async function VenuePage() {
             locationCount={venue.locationCount}
             scheduleJson={venue.scheduleJson}
           />
-          <Link href="/certificate" className="mt-6 inline-block rounded-full bg-white px-5 py-2 font-semibold text-black">
-            Ticari icra belgesi
-          </Link>
         </>
       )}
     </div>

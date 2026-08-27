@@ -57,6 +57,12 @@ describe("aura intelligence", () => {
     expect(result.mode).toBe("local");
   });
 
+  it("titles untitled spa notes instead of leaving Adsız parça", () => {
+    const result = localAssist({ notes: "spa masaj odası" });
+    expect(result.title.toLowerCase()).toContain("spa");
+    expect(result.termSlugs).toContain("spa");
+  });
+
   it("tags cafe morning copy", () => {
     const result = localAssist({ title: "Kahve sabahı", notes: "cafe brunch" });
     expect(result.venueFits).toContain("cafe");

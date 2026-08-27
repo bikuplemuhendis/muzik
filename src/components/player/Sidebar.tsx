@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, Library, Building2, Shield, ScrollText } from "lucide-react";
+import { Home, Search, Library, Building2, Shield, ScrollText, FileBadge } from "lucide-react";
 import { Logo } from "@/components/Logo";
 
 const items = [
@@ -11,6 +11,7 @@ const items = [
   { href: "/library", label: "Kitaplığın", icon: Library },
   { href: "/browse", label: "Katalog", icon: ScrollText },
   { href: "/venue", label: "İşletmem", icon: Building2 },
+  { href: "/certificate", label: "İcra belgesi", icon: FileBadge },
 ];
 
 export function Sidebar({

@@ -49,7 +49,14 @@ function titleFromFilename(filename: string) {
 
 export function localAssist(input: AssistInput): AssistResult {
   const blob = `${input.title ?? ""} ${input.filename ?? ""} ${input.notes ?? ""}`;
-  const title = (input.title?.trim() || (input.filename ? titleFromFilename(input.filename) : "Adsız parça")).slice(0, 80);
+  const rawTitle = input.title?.trim();
+  const filename = input.filename && !input.filename.includes("/") ? input.filename : "";
+  const title = (
+    rawTitle ||
+    (filename ? titleFromFilename(filename) : "") ||
+    (input.notes ? titleFromFilename(input.notes.split(/[,.]/)[0] || input.notes) : "") ||
+    "Adsız parça"
+  ).slice(0, 80);
   const slugs = new Set<string>(["royalty-free", "instrumental"]);
   let energy = 2;
   let bpm = 80;
