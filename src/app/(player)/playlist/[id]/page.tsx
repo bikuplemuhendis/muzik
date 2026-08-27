@@ -15,7 +15,7 @@ export default async function PlaylistPage({ params }: { params: Promise<{ id: s
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={playlist.coverUrl} alt="" className="h-52 w-52 rounded shadow-2xl" />
         <div>
-          <p className="text-sm font-semibold">Çalma listesi</p>
+          <p className="text-sm font-semibold">{playlist.isSmart ? "Akıllı çalma listesi" : "Çalma listesi"}</p>
           <h1 className="text-5xl font-bold">{playlist.title}</h1>
           <p className="mt-3 max-w-xl text-[#b3b3b3]">{playlist.description}</p>
           <p className="mt-2 text-sm text-[#b3b3b3]">{queue.length} parça · {playlist.venueFit || "çoklu mekân"}</p>

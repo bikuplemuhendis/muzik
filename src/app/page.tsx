@@ -28,7 +28,7 @@ export default function LandingPage() {
           </h1>
           <p className="mt-5 max-w-xl text-lg text-[#b3b3b3]">
             Aura, kafe, restoran, otel, spa ve mağazalar için yazılmış orijinal ambiyans kataloğudur. Spotify
-            benzeri çalar, gün dilimine göre listeler ve denetimde gösterebileceğiniz ticari icra belgesi.
+            benzeri çalar, radyo istasyonları, video TV ekranı, bölge programı ve denetimde gösterebileceğiniz ticari icra belgesi.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/register" className="rounded-full bg-[#1ed760] px-6 py-3 font-semibold text-black">
@@ -77,6 +77,19 @@ export default function LandingPage() {
           ].map((c) => (
             <div key={c.t} className="rounded-xl bg-[#181818] p-5">
               <h3 className="mb-2 font-semibold">{c.t}</h3>
+              <p className="text-sm text-[#b3b3b3]">{c.d}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 grid gap-4 md:grid-cols-4">
+          {[
+            { t: "Radyo", d: "Liste bitmez. Enerji, BPM ve gün dilimine göre sürekli kuyruk." },
+            { t: "Video TV", d: "Lobi ve vitrin için tam ekran besleme; radyoya kilitli." },
+            { t: "Bölgeler", d: "Salon, teras, lobi ayrı istasyon ve ekran alır." },
+            { t: "Program", d: "Sabah / akşam slotları admin ve işletme panelinden yönetilir." },
+          ].map((c) => (
+            <div key={c.t} className="rounded-xl border border-white/10 p-5">
+              <h3 className="mb-2 font-semibold text-[#c8a45a]">{c.t}</h3>
               <p className="text-sm text-[#b3b3b3]">{c.d}</p>
             </div>
           ))}

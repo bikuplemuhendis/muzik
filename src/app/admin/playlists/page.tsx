@@ -15,7 +15,10 @@ export default async function AdminPlaylistsPage() {
         {playlists.map((p) => (
           <li key={p.id} className="flex items-center justify-between rounded-lg bg-[#181818] px-4 py-3">
             <span>
-              {p.title} <span className="text-sm text-[#6a6a6a]">{p.tracks.length} parça</span>
+              {p.title}{" "}
+              <span className="text-sm text-[#6a6a6a]">
+                {p.isSmart ? "akıllı kural" : `${p.tracks.length} parça`}
+              </span>
             </span>
             <Link href={`/admin/playlists/${p.id}`} className="text-[#c8a45a]">
               Düzenle

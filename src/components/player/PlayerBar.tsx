@@ -1,9 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { Pause, Play, Repeat, Shuffle, SkipBack, SkipForward, Volume2 } from "lucide-react";
+import { Heart, ListMusic, Pause, Play, Radio, Repeat, Shuffle, SkipBack, SkipForward, Volume2 } from "lucide-react";
 import { formatDuration } from "@/lib/format";
 import { usePlayer } from "./PlayerProvider";
+
+function Bars({ active }: { active: boolean }) {
+  return (
+    <span className="flex h-4 items-end gap-0.5" aria-hidden>
+      {[0, 1, 2, 3].map((i) => (
+        <span
+          key={i}
+          className={`w-0.5 rounded-sm bg-[#1ed760] ${active ? "animate-pulse" : "opacity-40"}`}
+          style={{ height: active ? `${8 + ((i * 7) % 12)}px` : "4px", animationDelay: `${i * 120}ms` }}
+        />
+      ))}
+    </span>
+  );
+}
 
 export function PlayerBar() {
   const {
@@ -14,6 +28,9 @@ export function PlayerBar() {
     volume,
     shuffle,
     repeat,
+    mode,
+    station,
+    favoriteIds,
     toggle,
     next,
     prev,
@@ -22,6 +39,9 @@ export function PlayerBar() {
     toggleShuffle,
     cycleRepeat,
     setExpanded,
+    setQueueOpen,
+    queueOpen,
+    toggleFavorite,
   } = usePlayer();
 
   return (
@@ -38,11 +58,22 @@ export function PlayerBar() {
                 <Link href={`/track/${current.id}`} className="block truncate text-sm font-medium hover:underline">
                   {current.title}
                 </Link>
-                <p className="truncate text-xs text-[#b3b3b3]">{current.artistName}</p>
+                <p className="truncate text-xs text-[#b3b3b3]">
+                  {current.artistName}
+                  {mode === "radio" && station ? ` · ${station.name}` : ""}
+                </p>
               </div>
+              <button
+                type="button"
+                onClick={() => void toggleFavorite(current.id)}
+                className={favoriteIds.has(current.id) ? "text-[#1ed760]" : "text-[#b3b3b3] hover:text-white"}
+                aria-label="Favori"
+              >
+                <Heart className={`h-4 w-4 ${favoriteIds.has(current.id) ? "fill-current" : ""}`} />
+              </button>
             </>
           ) : (
-            <p className="text-sm text-[#6a6a6a]">Bir parça seçin</p>
+            <p className="text-sm text-[#6a6a6a]">Bir parça veya radyo seçin</p>
           )}
         </div>
 
@@ -95,7 +126,21 @@ export function PlayerBar() {
           </div>
         </div>
 
-        <div className="hidden items-center justify-end gap-2 md:flex">
+        <div className="hidden items-center justify-end gap-3 md:flex">
+          {mode === "radio" ? (
+            <span className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-[#c8a45a]">
+              <Radio className="h-3.5 w-3.5" /> Canlı
+            </span>
+          ) : null}
+          <Bars active={playing} />
+          <button
+            type="button"
+            onClick={() => setQueueOpen(!queueOpen)}
+            className={queueOpen ? "text-white" : "text-[#b3b3b3] hover:text-white"}
+            aria-label="Kuyruk"
+          >
+            <ListMusic className="h-4 w-4" />
+          </button>
           <Volume2 className="h-4 w-4 text-[#b3b3b3]" />
           <input
             type="range"
@@ -104,7 +149,7 @@ export function PlayerBar() {
             step={0.01}
             value={volume}
             onChange={(e) => setVolume(Number(e.target.value))}
-            className="h-1 w-28 accent-white"
+            className="h-1 w-24 accent-white"
           />
         </div>
       </div>

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { localAssist } from "@/lib/ai";
-import { TAXONOMY, TRACKS, PLAYLISTS, PLANS, termsByKind } from "@/data/catalog";
+import { TAXONOMY, TRACKS, PLAYLISTS, PLANS, STATIONS, SMART_PLAYLISTS, termsByKind } from "@/data/catalog";
+import { matchesSmartRules, pickRadioQueue, pickStationForContext, scoreTrackForRadio } from "@/lib/radio";
+import { parseVenueProgram, pickStationIdForVenue, resolveProgram } from "@/lib/schedule";
+import { countBy, playsByHour } from "@/lib/analytics";
 import { annualDiscountPercent, canAddLocation, formatTry, perLocationMonthly } from "@/lib/pricing";
 import { daypartForHour, formatDuration, greetingForHour } from "@/lib/format";
 import { signSession, verifySession } from "@/lib/session";
@@ -80,6 +83,51 @@ describe("session", () => {
   });
 });
 
+describe("radio", () => {
+  const spa = { id: "a", energy: 1, bpm: 52, termSlugs: ["spa", "calm", "ambient"] };
+  const retail = { id: "b", energy: 4, bpm: 110, termSlugs: ["retail", "uplifting"] };
+  const profile = {
+    venueFit: "spa",
+    mood: "calm",
+    energyMin: 1,
+    energyMax: 1,
+    bpmMin: 40,
+    bpmMax: 70,
+    termSlugs: ["spa", "ambient"],
+  };
+
+  it("scores spa tracks above retail for a spa station", () => {
+    expect(scoreTrackForRadio(spa, profile)).toBeGreaterThan(scoreTrackForRadio(retail, profile));
+  });
+
+  it("never returns excluded ids in a radio queue", () => {
+    const queue = pickRadioQueue([spa, retail], { ...profile, excludeIds: ["a"] }, 5, () => 0);
+    expect(queue.map((t) => t.id)).not.toContain("a");
+  });
+
+  it("picks auto daypart station for evening hotel", () => {
+    const chosen = pickStationForContext(
+      STATIONS.map((s) => ({
+        id: s.id,
+        venueFit: s.venueFit,
+        autoDaypart: s.autoDaypart,
+        termSlugs: s.termSlugs,
+        sortOrder: s.sortOrder,
+      })),
+      19,
+      "hotel",
+    );
+    expect(chosen?.id).toBeTruthy();
+    expect(["hotel", "all"]).toContain(chosen?.venueFit);
+  });
+
+  it("smart playlist rules keep conversation-friendly low energy", () => {
+    const rules = SMART_PLAYLISTS[0].rules;
+    expect(matchesSmartRules({ id: "x", energy: 2, bpm: 70, termSlugs: ["conversation-friendly", "cafe"] }, rules)).toBe(true);
+    expect(matchesSmartRules({ id: "y", energy: 4, bpm: 110, termSlugs: ["conversation-friendly"] }, rules)).toBe(false);
+  });
+});
+
 describe("format", () => {
   it("formats player clock and greetings", () => {
     expect(formatDuration(125)).toBe("2:05");
@@ -88,3 +136,52 @@ describe("format", () => {
     expect(daypartForHour(2)).toBe("night");
   });
 });
+
+describe("venue program", () => {
+  it("reads legacy playlist ids and new slot objects", () => {
+    const legacy = parseVenueProgram(JSON.stringify({ morning: "pl_kahve_saati", evening: "st_service" }));
+    expect(legacy.morning.playlistId).toBe("pl_kahve_saati");
+    expect(legacy.evening.stationId).toBe("st_service");
+    const modern = parseVenueProgram(
+      JSON.stringify({
+        morning: { stationId: "st_cafe_fm", playlistId: "pl_kahve_saati", feedId: "feed_cafe" },
+      }),
+    );
+    expect(modern.morning.feedId).toBe("feed_cafe");
+  });
+
+  it("resolves evening slot and prefers scheduled station", () => {
+    const json = JSON.stringify({
+      evening: { stationId: "st_service", playlistId: "pl_aksam_servisi", feedId: "feed_dining" },
+    });
+    expect(resolveProgram(json, 19).stationId).toBe("st_service");
+    const id = pickStationIdForVenue({
+      scheduleJson: json,
+      activeStationId: "st_cafe_fm",
+      venueType: "cafe",
+      hour: 19,
+      stations: STATIONS.map((s) => ({
+        id: s.id,
+        venueFit: s.venueFit,
+        autoDaypart: s.autoDaypart,
+        termSlugs: s.termSlugs,
+        sortOrder: s.sortOrder,
+      })),
+    });
+    expect(id).toBe("st_service");
+  });
+});
+
+describe("analytics", () => {
+  it("buckets plays by hour and counts sources", () => {
+    const items = [
+      { source: "radio", stationId: "st_cafe_fm", createdAt: new Date("2026-08-27T08:15:00"), trackTitle: "A" },
+      { source: "radio", stationId: "st_cafe_fm", createdAt: new Date("2026-08-27T08:40:00"), trackTitle: "B" },
+      { source: "playlist", stationId: "", createdAt: new Date("2026-08-27T19:10:00"), trackTitle: "A" },
+    ];
+    expect(playsByHour(items)[8].count).toBe(2);
+    expect(playsByHour(items)[19].count).toBe(1);
+    expect(countBy(items, (i) => i.trackTitle)[0]).toEqual(["A", 2]);
+  });
+});
+

@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { PlaylistCard, TrackRow } from "@/components/player/TrackRow";
+import { FeedCard, PlaylistCard, StationCard, TrackRow } from "@/components/player/TrackRow";
 import { toPlayerTrack, type PlayerTrack } from "@/lib/player-track";
 
 type Result = {
   tracks: (PlayerTrack & { collectionName: string })[];
   playlists: { id: string; title: string; description: string; coverUrl: string }[];
   terms: { kind: string; slug: string; nameTr: string }[];
+  stations: { id: string; name: string; tagline: string; coverUrl: string }[];
+  feeds: { id: string; name: string; description: string; coverUrl: string }[];
 };
 
 export default function SearchPage() {
@@ -32,7 +34,7 @@ export default function SearchPage() {
         autoFocus
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder="Parça, mekân, ruh hali veya liste ara"
+        placeholder="Parça, radyo, video, mekân veya liste ara"
         className="mb-8 w-full max-w-xl rounded-full px-5 py-3 text-base"
       />
       {!q ? (
@@ -49,6 +51,20 @@ export default function SearchPage() {
                 >
                   {t.nameTr}
                 </Link>
+              ))}
+            </div>
+          ) : null}
+          {data?.stations?.length ? (
+            <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+              {data.stations.map((st) => (
+                <StationCard key={st.id} id={st.id} name={st.name} tagline={st.tagline} coverUrl={st.coverUrl} />
+              ))}
+            </div>
+          ) : null}
+          {data?.feeds?.length ? (
+            <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+              {data.feeds.map((f) => (
+                <FeedCard key={f.id} id={f.id} name={f.name} description={f.description} coverUrl={f.coverUrl} />
               ))}
             </div>
           ) : null}

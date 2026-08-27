@@ -1,10 +1,17 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { PLAYLISTS, PLANS, TAXONOMY, TRACKS } from "../src/data/catalog";
+import { PLAYLISTS, PLANS, TAXONOMY, TRACKS, STATIONS, VIDEO_FEEDS, COLLECTIONS, SMART_PLAYLISTS } from "../src/data/catalog";
 
 const prisma = new PrismaClient();
 
 async function main() {
+  await prisma.playEvent.deleteMany();
+  await prisma.favorite.deleteMany();
+  await prisma.zone.deleteMany();
+  await prisma.videoFeedItem.deleteMany();
+  await prisma.videoFeed.deleteMany();
+  await prisma.radioStation.deleteMany();
+  await prisma.collection.deleteMany();
   await prisma.playlistTrack.deleteMany();
   await prisma.trackTerm.deleteMany();
   await prisma.trackMedia.deleteMany();
@@ -76,15 +83,19 @@ Toplama kuruluşu denetiminde bu belge + güncel abonelik dökümü ibraz edilir
       planId: "plan_cafe",
       locationCount: 1,
       scheduleJson: JSON.stringify({
-        morning: "pl_kahve_saati",
-        afternoon: "pl_brunch",
-        evening: "pl_aksam_servisi",
-        night: "pl_lounge_after_dark",
+        morning: { stationId: "st_cafe_fm", playlistId: "pl_kahve_saati", feedId: "feed_cafe" },
+        afternoon: { stationId: "st_cafe_fm", playlistId: "pl_brunch", feedId: "feed_cafe" },
+        evening: { stationId: "st_service", playlistId: "pl_aksam_servisi", feedId: "feed_dining" },
+        night: { stationId: "st_after_dark", playlistId: "pl_lounge_after_dark", feedId: "feed_night" },
       }),
+      accentColor: "#c48a5a",
+      displayMessage: "Kadıköy · telifsiz ambiyans",
+      activeStationId: "st_cafe_fm",
+      activeFeedId: "feed_cafe",
     },
   });
 
-  await prisma.venue.create({
+  const hotel = await prisma.venue.create({
     data: {
       id: "venue_demo_hotel",
       name: "Demo Hotel Galata",
@@ -94,11 +105,15 @@ Toplama kuruluşu denetiminde bu belge + güncel abonelik dökümü ibraz edilir
       planId: "plan_restoran",
       locationCount: 2,
       scheduleJson: JSON.stringify({
-        morning: "pl_lobi_sukuneti",
-        afternoon: "pl_lobi_sukuneti",
-        evening: "pl_aksam_servisi",
-        night: "pl_lounge_after_dark",
+        morning: { stationId: "st_lobby_wave", playlistId: "pl_lobi_sukuneti", feedId: "feed_lobby" },
+        afternoon: { stationId: "st_lobby_wave", playlistId: "pl_lobi_sukuneti", feedId: "feed_lobby" },
+        evening: { stationId: "st_service", playlistId: "pl_aksam_servisi", feedId: "feed_dining" },
+        night: { stationId: "st_after_dark", playlistId: "pl_lounge_after_dark", feedId: "feed_night" },
       }),
+      accentColor: "#c8a45a",
+      displayMessage: "Galata · lobi sükuneti",
+      activeStationId: "st_lobby_wave",
+      activeFeedId: "feed_lobby",
     },
   });
 
@@ -185,7 +200,100 @@ Toplama kuruluşu denetiminde bu belge + güncel abonelik dökümü ibraz edilir
     });
   }
 
-  console.log(`Seeded ${TRACKS.length} tracks, ${PLAYLISTS.length} playlists, demo admin + venue.`);
+  for (const pl of SMART_PLAYLISTS) {
+    await prisma.playlist.create({
+      data: {
+        id: pl.id,
+        title: pl.title,
+        description: pl.description,
+        coverUrl: pl.coverUrl,
+        kind: "SMART",
+        venueFit: pl.venueFit,
+        isPublic: true,
+        isSmart: true,
+        rulesJson: JSON.stringify(pl.rules),
+        createdById: admin.id,
+      },
+    });
+  }
+
+  for (const st of STATIONS) {
+    await prisma.radioStation.create({
+      data: {
+        id: st.id,
+        slug: st.slug,
+        name: st.name,
+        tagline: st.tagline,
+        coverUrl: st.coverUrl,
+        venueFit: st.venueFit,
+        mood: st.mood,
+        energyMin: st.energyMin,
+        energyMax: st.energyMax,
+        bpmMin: st.bpmMin,
+        bpmMax: st.bpmMax,
+        termSlugsJson: JSON.stringify(st.termSlugs),
+        seedPlaylistId: st.seedPlaylistId,
+        feedId: st.feedId,
+        autoDaypart: st.autoDaypart,
+        crossfadeSec: st.crossfadeSec,
+        isPublished: true,
+        sortOrder: st.sortOrder,
+      },
+    });
+  }
+
+  for (const feed of VIDEO_FEEDS) {
+    await prisma.videoFeed.create({
+      data: {
+        id: feed.id,
+        slug: feed.slug,
+        name: feed.name,
+        description: feed.description,
+        coverUrl: feed.coverUrl,
+        venueFit: feed.venueFit,
+        kind: feed.kind,
+        isPublished: true,
+        items: {
+          create: feed.items.map((item, i) => ({
+            url: item.url,
+            posterUrl: item.posterUrl,
+            caption: item.caption,
+            durationSec: 8,
+            sortOrder: i,
+          })),
+        },
+      },
+    });
+  }
+
+  for (const col of COLLECTIONS) {
+    await prisma.collection.create({ data: col });
+  }
+
+  await prisma.zone.createMany({
+    data: [
+      { id: "zone_cafe_salon", venueId: cafe.id, name: "Salon", kind: "both", stationId: "st_cafe_fm", playlistId: "pl_kahve_saati", feedId: "feed_cafe", isDefault: true },
+      { id: "zone_cafe_teras", venueId: cafe.id, name: "Teras", kind: "audio", stationId: "st_cafe_fm", playlistId: "pl_brunch", feedId: "", isDefault: false },
+      { id: "zone_hotel_lobi", venueId: hotel.id, name: "Lobi", kind: "both", stationId: "st_lobby_wave", playlistId: "pl_lobi_sukuneti", feedId: "feed_lobby", isDefault: true },
+      { id: "zone_hotel_restoran", venueId: hotel.id, name: "Restoran", kind: "both", stationId: "st_service", playlistId: "pl_aksam_servisi", feedId: "feed_dining", isDefault: false },
+    ],
+  });
+
+  await prisma.favorite.create({
+    data: { userId: "user_venue", trackId: "trk_morning_steam" },
+  });
+
+  await prisma.playEvent.createMany({
+    data: [
+      { userId: "user_venue", venueId: cafe.id, trackId: "trk_morning_steam", stationId: "st_cafe_fm", source: "radio" },
+      { userId: "user_venue", venueId: cafe.id, trackId: "trk_window_seat", stationId: "st_cafe_fm", source: "playlist" },
+      { userId: "user_venue", venueId: cafe.id, trackId: "trk_ceramic_light", stationId: "", source: "search" },
+    ],
+  });
+
+  console.log(
+    `Seeded ${TRACKS.length} tracks, ${PLAYLISTS.length} lists, ${STATIONS.length} stations, ${VIDEO_FEEDS.length} feeds.`,
+  );
 }
 
 main()

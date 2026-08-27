@@ -8,17 +8,19 @@ datasource db {
 }
 
 model User {
-  id           String     @id
-  email        String     @unique
+  id           String        @id
+  email        String        @unique
   passwordHash String
   name         String
   role         String
   venueId      String?
-  venue        Venue?     @relation(fields: [venueId], references: [id])
-  createdAt    DateTime   @default(now())
+  venue        Venue?        @relation(fields: [venueId], references: [id])
+  createdAt    DateTime      @default(now())
   tracks       Track[]
   playlists    Playlist[]
   aiLogs       AiAssistLog[]
+  favorites    Favorite[]
+  playEvents   PlayEvent[]
 }
 
 model Plan {
@@ -38,18 +40,37 @@ model Plan {
 }
 
 model Venue {
-  id            String   @id
-  name          String
-  venueType     String
-  city          String
-  address       String   @default("")
-  planId        String
-  plan          Plan     @relation(fields: [planId], references: [id])
-  locationCount Int      @default(1)
-  status        String   @default("active")
-  scheduleJson  String   @default("{}")
-  createdAt     DateTime @default(now())
-  users         User[]
+  id              String      @id
+  name            String
+  venueType       String
+  city            String
+  address         String      @default("")
+  planId          String
+  plan            Plan        @relation(fields: [planId], references: [id])
+  locationCount   Int         @default(1)
+  status          String      @default("active")
+  scheduleJson    String      @default("{}")
+  accentColor     String      @default("#c8a45a")
+  logoUrl         String      @default("")
+  displayMessage  String      @default("")
+  activeStationId String      @default("")
+  activeFeedId    String      @default("")
+  createdAt       DateTime    @default(now())
+  users           User[]
+  zones           Zone[]
+  playEvents      PlayEvent[]
+}
+
+model Zone {
+  id         String @id
+  venueId    String
+  venue      Venue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  name       String
+  kind       String @default("both")
+  stationId  String @default("")
+  playlistId String @default("")
+  feedId     String @default("")
+  isDefault  Boolean @default(false)
 }
 
 model License {
@@ -88,6 +109,8 @@ model Track {
   media          TrackMedia[]
   playlistTracks PlaylistTrack[]
   aiLogs         AiAssistLog[]
+  favorites      Favorite[]
+  playEvents     PlayEvent[]
 }
 
 model TrackMedia {
@@ -116,8 +139,8 @@ model TaxonomyTerm {
 model TrackTerm {
   trackId String
   termId  String
-  track   Track         @relation(fields: [trackId], references: [id], onDelete: Cascade)
-  term    TaxonomyTerm  @relation(fields: [termId], references: [id], onDelete: Cascade)
+  track   Track        @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  term    TaxonomyTerm @relation(fields: [termId], references: [id], onDelete: Cascade)
 
   @@id([trackId, termId])
 }
@@ -130,6 +153,8 @@ model Playlist {
   kind        String          @default("CURATED")
   venueFit    String          @default("")
   isPublic    Boolean         @default(true)
+  isSmart     Boolean         @default(false)
+  rulesJson   String          @default("")
   createdById String
   createdBy   User            @relation(fields: [createdById], references: [id])
   tracks      PlaylistTrack[]
@@ -143,6 +168,82 @@ model PlaylistTrack {
   track      Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
 
   @@id([playlistId, trackId])
+}
+
+model RadioStation {
+  id             String  @id
+  slug           String  @unique
+  name           String
+  tagline        String
+  coverUrl       String
+  venueFit       String  @default("")
+  mood           String  @default("")
+  energyMin      Int     @default(1)
+  energyMax      Int     @default(5)
+  bpmMin         Int     @default(40)
+  bpmMax         Int     @default(180)
+  termSlugsJson  String  @default("[]")
+  seedPlaylistId String  @default("")
+  feedId         String  @default("")
+  autoDaypart    Boolean @default(false)
+  crossfadeSec   Int     @default(4)
+  isPublished    Boolean @default(true)
+  sortOrder      Int     @default(0)
+}
+
+model VideoFeed {
+  id          String          @id
+  slug        String          @unique
+  name        String
+  description String
+  coverUrl    String
+  venueFit    String          @default("")
+  kind        String          @default("ambient")
+  isPublished Boolean         @default(true)
+  items       VideoFeedItem[]
+}
+
+model VideoFeedItem {
+  id          String    @id @default(cuid())
+  feedId      String
+  feed        VideoFeed @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  url         String
+  posterUrl   String    @default("")
+  caption     String    @default("")
+  durationSec Int       @default(8)
+  sortOrder   Int       @default(0)
+}
+
+model Collection {
+  id          String @id
+  slug        String @unique
+  title       String
+  artistName  String
+  coverUrl    String
+  description String
+}
+
+model Favorite {
+  userId    String
+  trackId   String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track     Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, trackId])
+}
+
+model PlayEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  venueId   String?
+  venue     Venue?   @relation(fields: [venueId], references: [id])
+  trackId   String
+  track     Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  stationId String   @default("")
+  source    String   @default("player")
+  createdAt DateTime @default(now())
 }
 
 model AiAssistLog {

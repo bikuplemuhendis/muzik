@@ -2,7 +2,23 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { SESSION_COOKIE, verifySession } from "@/lib/session";
 
-const PLAYER_PREFIXES = ["/home", "/search", "/library", "/browse", "/playlist", "/track", "/venue", "/collection", "/certificate"];
+const PLAYER_PREFIXES = [
+  "/home",
+  "/search",
+  "/library",
+  "/browse",
+  "/playlist",
+  "/track",
+  "/venue",
+  "/collection",
+  "/certificate",
+  "/radio",
+  "/feed",
+  "/feeds",
+  "/display",
+  "/artist",
+  "/favorites",
+];
 const ADMIN_PREFIX = "/admin";
 
 function startsWithAny(pathname: string, prefixes: string[]) {

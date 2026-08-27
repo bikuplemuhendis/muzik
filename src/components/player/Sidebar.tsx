@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, Library, Building2, Shield, ScrollText, FileBadge } from "lucide-react";
+import { Home, Search, Library, Building2, Shield, ScrollText, FileBadge, Radio, Tv } from "lucide-react";
 import { Logo } from "@/components/Logo";
 
 const items = [
   { href: "/home", label: "Ana sayfa", icon: Home },
   { href: "/search", label: "Ara", icon: Search },
+  { href: "/radio", label: "Radyo", icon: Radio },
+  { href: "/feeds", label: "Video", icon: Tv },
   { href: "/library", label: "Kitaplığın", icon: Library },
   { href: "/browse", label: "Katalog", icon: ScrollText },
   { href: "/venue", label: "İşletmem", icon: Building2 },
@@ -16,9 +18,11 @@ const items = [
 
 export function Sidebar({
   playlists,
+  stations,
   isAdmin,
 }: {
   playlists: { id: string; title: string }[];
+  stations: { id: string; name: string }[];
   isAdmin: boolean;
 }) {
   const pathname = usePathname();
@@ -58,7 +62,21 @@ export function Sidebar({
         ) : null}
       </nav>
       <div className="flex-1 overflow-y-auto rounded-xl bg-[#121212] p-4">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#6a6a6a]">Hazır listeler</p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#6a6a6a]">Radyolar</p>
+        <div className="mb-4 flex flex-col gap-1">
+          {stations.map((st) => (
+            <Link
+              key={st.id}
+              href={`/radio/${st.id}`}
+              className={`truncate rounded-md px-2 py-1.5 text-sm ${
+                pathname === `/radio/${st.id}` ? "text-white" : "text-[#b3b3b3] hover:text-white"
+              }`}
+            >
+              {st.name}
+            </Link>
+          ))}
+        </div>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#6a6a6a]">Listeler</p>
         <div className="flex flex-col gap-1">
           {playlists.map((pl) => (
             <Link

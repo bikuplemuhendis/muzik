@@ -2,40 +2,45 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { DAYPARTS, parseVenueProgram, serializeVenueProgram, type Daypart, type ProgramSlot } from "@/lib/schedule";
 
-const slots = [
-  { key: "morning", label: "Sabah" },
-  { key: "afternoon", label: "Öğleden sonra" },
-  { key: "evening", label: "Akşam" },
-  { key: "night", label: "Gece" },
-];
+const labels: Record<Daypart, string> = {
+  morning: "Sabah",
+  afternoon: "Öğleden sonra",
+  evening: "Akşam",
+  night: "Gece",
+};
 
 export function ScheduleForm({
   maxLocations,
   locationCount,
   scheduleJson,
+  stations,
+  playlists,
+  feeds,
 }: {
   venueId: string;
   maxLocations: number;
   locationCount: number;
   scheduleJson: string;
+  stations: { id: string; name: string }[];
+  playlists: { id: string; title: string }[];
+  feeds: { id: string; name: string }[];
 }) {
   const router = useRouter();
-  const [schedule, setSchedule] = useState<Record<string, string>>(() => {
-    try {
-      return JSON.parse(scheduleJson) as Record<string, string>;
-    } catch {
-      return {};
-    }
-  });
+  const [schedule, setSchedule] = useState(() => parseVenueProgram(scheduleJson));
   const [locations, setLocations] = useState(locationCount);
   const [msg, setMsg] = useState("");
+
+  function patch(slot: Daypart, key: keyof ProgramSlot, value: string) {
+    setSchedule((prev) => ({ ...prev, [slot]: { ...prev[slot], [key]: value } }));
+  }
 
   async function save() {
     const res = await fetch("/api/venue", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ scheduleJson: JSON.stringify(schedule), locationCount: locations }),
+      body: JSON.stringify({ scheduleJson: serializeVenueProgram(schedule), locationCount: locations }),
     });
     setMsg(res.ok ? "Kaydedildi" : "Kayıt başarısız");
     router.refresh();
@@ -44,17 +49,49 @@ export function ScheduleForm({
   return (
     <div className="rounded-xl border border-white/10 p-5">
       <h2 className="mb-3 font-semibold">Gün dilimi programı</h2>
-      <p className="mb-4 text-sm text-[#b3b3b3]">Çalar, saate göre bu liste kimliklerini önerir (ör. pl_kahve_saati).</p>
-      <div className="space-y-3">
-        {slots.map((s) => (
-          <label key={s.key} className="block text-sm">
-            {s.label}
-            <input
-              className="mt-1 w-full px-3 py-2"
-              value={schedule[s.key] ?? ""}
-              onChange={(e) => setSchedule({ ...schedule, [s.key]: e.target.value })}
-            />
-          </label>
+      <p className="mb-4 text-sm text-[#b3b3b3]">
+        TV ve otomatik radyo bu slota bakar. Saat dilimi değişince yayın kayar.
+      </p>
+      <div className="space-y-5">
+        {DAYPARTS.map((key) => (
+          <div key={key} className="rounded-lg bg-[#181818] p-3">
+            <p className="mb-2 text-sm font-semibold">{labels[key]}</p>
+            <div className="grid gap-2 md:grid-cols-3">
+              <label className="text-xs text-[#b3b3b3]">
+                Radyo
+                <select className="mt-1 w-full px-3 py-2 text-sm text-white" value={schedule[key].stationId} onChange={(e) => patch(key, "stationId", e.target.value)}>
+                  <option value="">Varsayılan</option>
+                  {stations.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-xs text-[#b3b3b3]">
+                Liste
+                <select className="mt-1 w-full px-3 py-2 text-sm text-white" value={schedule[key].playlistId} onChange={(e) => patch(key, "playlistId", e.target.value)}>
+                  <option value="">Yok</option>
+                  {playlists.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-xs text-[#b3b3b3]">
+                Video
+                <select className="mt-1 w-full px-3 py-2 text-sm text-white" value={schedule[key].feedId} onChange={(e) => patch(key, "feedId", e.target.value)}>
+                  <option value="">Varsayılan</option>
+                  {feeds.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </div>
         ))}
         <label className="block text-sm">
           Lokasyon sayısı (azami {maxLocations === 999 ? "sınırsız" : maxLocations})

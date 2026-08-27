@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Play } from "lucide-react";
+import { ListPlus, Play, Radio } from "lucide-react";
 import { formatDuration } from "@/lib/format";
 import { toPlayerTrack, type PlayerTrack } from "@/lib/player-track";
 import { usePlayer } from "./PlayerProvider";
@@ -15,7 +15,7 @@ export function TrackRow({
   index: number;
   queue: PlayerTrack[];
 }) {
-  const { playTracks, current, playing } = usePlayer();
+  const { playTracks, current, playing, addToQueue, startTrackRadio } = usePlayer();
   const active = current?.id === track.id;
   return (
     <div
@@ -40,7 +40,13 @@ export function TrackRow({
         </div>
       </div>
       <p className="hidden truncate text-sm text-[#b3b3b3] md:block">{track.collectionName}</p>
-      <div className="flex items-center justify-end gap-3 text-sm text-[#b3b3b3]">
+      <div className="flex items-center justify-end gap-2 text-sm text-[#b3b3b3]">
+        <button type="button" className="play-fab rounded-full p-1.5 hover:text-white" onClick={() => addToQueue(toPlayerTrack(track))} aria-label="Kuyruğa ekle">
+          <ListPlus className="h-4 w-4" />
+        </button>
+        <button type="button" className="play-fab rounded-full p-1.5 hover:text-white" onClick={() => void startTrackRadio(toPlayerTrack(track))} aria-label="Radyo">
+          <Radio className="h-4 w-4" />
+        </button>
         <button
           type="button"
           className="play-fab rounded-full bg-[#1ed760] p-1.5 text-black"
@@ -86,6 +92,65 @@ export function PlaylistCard({
         <Play className="h-5 w-5 fill-current" />
       </button>
     </div>
+  );
+}
+
+export function StationCard({
+  id,
+  name,
+  tagline,
+  coverUrl,
+}: {
+  id: string;
+  name: string;
+  tagline: string;
+  coverUrl: string;
+}) {
+  const { startStation } = usePlayer();
+  return (
+    <div className="card-hover group relative overflow-hidden rounded-lg bg-[#181818] p-3">
+      <Link href={`/radio/${id}`} className="block">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={coverUrl} alt="" className="mb-3 aspect-square w-full rounded-md object-cover" />
+        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#c8a45a]">Radyo</p>
+        <h3 className="truncate font-semibold">{name}</h3>
+        <p className="mt-1 line-clamp-2 text-sm text-[#b3b3b3]">{tagline}</p>
+      </Link>
+      <button
+        type="button"
+        className="play-fab absolute right-5 top-[38%] flex h-12 w-12 items-center justify-center rounded-full bg-[#1ed760] text-black shadow-lg"
+        onClick={() => void startStation(id)}
+        aria-label={`${name} radyo`}
+      >
+        <Play className="h-5 w-5 fill-current" />
+      </button>
+    </div>
+  );
+}
+
+export function FeedCard({
+  id,
+  name,
+  description,
+  coverUrl,
+}: {
+  id: string;
+  name: string;
+  description: string;
+  coverUrl: string;
+}) {
+  return (
+    <Link href={`/feed/${id}`} className="card-hover group block overflow-hidden rounded-lg bg-[#181818] p-3">
+      <div className="relative mb-3 aspect-video overflow-hidden rounded-md">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={coverUrl} alt="" className="h-full w-full object-cover" />
+        <span className="absolute left-2 top-2 rounded bg-black/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+          Video
+        </span>
+      </div>
+      <h3 className="truncate font-semibold">{name}</h3>
+      <p className="mt-1 line-clamp-2 text-sm text-[#b3b3b3]">{description}</p>
+    </Link>
   );
 }
 

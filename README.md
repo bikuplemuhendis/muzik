@@ -27,8 +27,8 @@ Aç: [http://localhost:3000](http://localhost:3000)
 ## Ne var?
 
 - Pazarlama sayfası ve işletme planları (Kafe / Restoran & Otel / Zincir)
-- İşletme çaları: ana sayfa, arama, kitaplık, katalog, liste, parça (video + fotoğraf), gün dilimi, icra belgesi
-- Admin: parça ekleme (ses, kapak, video, ek görsel), AI öneri, listeler, taksonomi, lisanslar, aboneler
+- İşletme çaları: radyo, gün dilimi programı, video beslemesi, TV ekranı, kuyruk, akıllı listeler, koleksiyonlar, favoriler
+- Admin: radyo/video/bölge CRUD, analitik, parça/AI
 - Yerel AI (kural) + isteğe bağlı `OPENAI_API_KEY`
 
 Seed sesler **sentetik demo tonlarıdır**; üretimde in-house / tam devir katalog gerekir.

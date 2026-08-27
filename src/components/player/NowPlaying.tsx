@@ -1,13 +1,13 @@
 "use client";
 
-import { X } from "lucide-react";
+import { Radio, X } from "lucide-react";
 import { usePlayer } from "./PlayerProvider";
 
 export function NowPlaying() {
-  const { current, expanded, setExpanded, playing } = usePlayer();
+  const { current, expanded, setExpanded, playing, startTrackRadio, mode, station } = usePlayer();
   if (!expanded || !current) return null;
   return (
-    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 bg-black/92 backdrop-blur-sm">
       <button
         type="button"
         onClick={() => setExpanded(false)}
@@ -36,8 +36,20 @@ export function NowPlaying() {
           {!playing ? <div className="absolute inset-0 bg-black/20" /> : null}
         </div>
         <div className="text-center">
-          <h2 className="text-2xl font-bold">{current.title}</h2>
-          <p className="text-[#b3b3b3]">{current.artistName} · {current.collectionName}</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-[#c8a45a]">
+            {mode === "radio" ? station?.name ?? "Radyo" : current.collectionName}
+          </p>
+          <h2 className="mt-2 text-3xl font-bold">{current.title}</h2>
+          <p className="text-[#b3b3b3]">
+            {current.artistName} · {current.collectionName}
+          </p>
+          <button
+            type="button"
+            onClick={() => void startTrackRadio(current)}
+            className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#1ed760] px-5 py-2 text-sm font-semibold text-black"
+          >
+            <Radio className="h-4 w-4" /> Bu parçadan radyo
+          </button>
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getTrack } from "@/lib/catalog";
 import { PlayButton } from "@/components/player/PlayButton";
+import { TrackRadioButton } from "@/components/player/TrackRadioButton";
 import { toPlayerTrack } from "@/lib/player-track";
 
 export default async function TrackPage({ params }: { params: Promise<{ id: string }> }) {
@@ -21,9 +22,13 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
           )}
         </div>
         <div>
-          <p className="text-sm text-[#c8a45a]">{track.collectionName}</p>
+          <p className="text-sm text-[#c8a45a]">
+            <Link href={`/collection/${track.collectionName.toLowerCase().replace(/\s+/g, "-")}`}>{track.collectionName}</Link>
+          </p>
           <h1 className="text-4xl font-bold">{track.title}</h1>
-          <p className="mt-2 text-lg text-[#b3b3b3]">{track.artistName}</p>
+          <p className="mt-2 text-lg text-[#b3b3b3]">
+            <Link href={`/artist/${encodeURIComponent(track.artistName)}`}>{track.artistName}</Link>
+          </p>
           <p className="mt-4 text-[#b3b3b3]">{track.description}</p>
           <p className="mt-3 text-sm text-[#6a6a6a]">
             {track.bpm} BPM · enerji {track.energy}/5 · {track.license.name}
@@ -35,8 +40,9 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
               </Link>
             ))}
           </div>
-          <div className="mt-6">
+          <div className="mt-6 flex flex-wrap gap-3">
             <PlayButton tracks={[player]} />
+            <TrackRadioButton track={player} />
           </div>
         </div>
       </div>

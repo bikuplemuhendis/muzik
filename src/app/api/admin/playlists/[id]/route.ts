@@ -10,6 +10,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
   const parsed = playlistSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Eksik alan" }, { status: 400 });
   const data = parsed.data;
+  const isSmart = Boolean(data.isSmart);
   await prisma.playlistTrack.deleteMany({ where: { playlistId: id } });
   const playlist = await prisma.playlist.update({
     where: { id },
@@ -19,9 +20,14 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
       coverUrl: data.coverUrl,
       venueFit: data.venueFit,
       isPublic: data.isPublic,
-      tracks: {
-        create: data.trackIds.map((trackId, position) => ({ trackId, position })),
-      },
+      isSmart,
+      kind: isSmart ? "SMART" : "CURATED",
+      rulesJson: isSmart ? JSON.stringify(data.rules ?? {}) : "",
+      tracks: isSmart
+        ? undefined
+        : {
+            create: data.trackIds.map((trackId, position) => ({ trackId, position })),
+          },
     },
   });
   return NextResponse.json(playlist);

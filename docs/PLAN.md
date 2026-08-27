@@ -74,19 +74,23 @@ Kapsam dışı (ayrı teklif): TV/reklam jingle, marka anthem, üçüncü taraf 
 
 ## 6. Ürün yüzeyleri
 
-### İşletme çaları (Spotify benzeri)
+### İşletme çaları
 
-- Sol menü, ana sayfa önerileri, arama, kitaplık, alt çalar
-- Kapak + now playing; varsa video arka plan
-- Mekân türü / ruh hali browse
-- Gün dilimi programı
+- Spotify benzeri kabuk: kenar çubuğu, kuyruk paneli, alt çalar, kapak genişletme
+- **Radyo:** kural tabanlı sürekli kuyruk (enerji, BPM, etiket, gün dilimi). Liste bitmez; son çalınanlar tekrar etmez. Admin istasyonu oluşturur/düzenler.
+- **Video beslemesi + TV ekranı:** lobi/vitrin için tam ekran, radyoya kilitli, marka rengi ve saat. Klipler admin’den yönetilir.
+- **Bölgeler:** salon / teras / lobi ayrı istasyon ve feed; işletme panelinden de atanır
+- **Gün dilimi programı:** sabah–gece slotlarında radyo + liste + video
+- Akıllı listeler (kural), koleksiyonlar, favoriler, son çalınanlar
 - Ticari icra belgesi
 
-### Admin (tek katalog kapısı)
+### Admin
 
-- Parça ekle/düzenle: ses, kapak, video, ek fotoğraf
-- Aura Intelligence: dosya adı + not → başlık, açıklama, BPM, enerji, etiket
-- Listeler, taksonomi, lisans metni, abone işletmeler
+- Parça (ses, kapak, video, foto, AI)
+- Radyo istasyonu kuralları (oluştur / düzenle / yayın aç-kapa)
+- Video beslemeleri ve klipler, bölgeler, çalma analitikleri (saat, kaynak, istasyon)
+- Akıllı liste kuralları
+- Taksonomi ve lisans
 
 `OPENAI_API_KEY` varsa bulut modeli; yoksa yerel kural motoru.
 
@@ -96,6 +100,7 @@ Kapsam dışı (ayrı teklif): TV/reklam jingle, marka anthem, üçüncü taraf 
 - Prisma + SQLite (üretimde Postgres’e taşınır)
 - HMAC oturum çerezi (ADMIN / VENUE)
 - Yerel `public/media` + admin upload
+- Radyo motoru: kural skoru + tekrar etmeme penceresi
 - Seed: sentetik, orijinal demo tonları (üretim kataloğu değildir)
 
 Üretim hedefi: S3/R2, Postgres, gerçek CDN, donanım çalar (Raspberry / existing amp).

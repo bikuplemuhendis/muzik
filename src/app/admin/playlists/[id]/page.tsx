@@ -12,6 +12,12 @@ export default async function EditPlaylistPage({ params }: { params: Promise<{ i
     prisma.track.findMany({ orderBy: { title: "asc" } }),
   ]);
   if (!playlist) notFound();
+  let rules = {};
+  try {
+    rules = JSON.parse(playlist.rulesJson || "{}") as Record<string, unknown>;
+  } catch {
+    rules = {};
+  }
   return (
     <div>
       <h2 className="mb-6 text-2xl font-bold">Listeyi düzenle</h2>
@@ -24,7 +30,9 @@ export default async function EditPlaylistPage({ params }: { params: Promise<{ i
           coverUrl: playlist.coverUrl,
           venueFit: playlist.venueFit,
           isPublic: playlist.isPublic,
+          isSmart: playlist.isSmart,
           trackIds: playlist.tracks.map((t) => t.trackId),
+          rules,
         }}
       />
     </div>
